@@ -1,5 +1,4 @@
 #include <cstdlib>
-#include <utility>
 #include "solver.h"
 
 using namespace Sat;
@@ -24,7 +23,6 @@ bool Solver::solve(FormulaImpl &f)
 bool Solver::splitting(FormulaImpl &f)
 {
   FormulaImpl c(f);
-  std::pair<int, bool> temp;
 
   // condition 1
   if (c.getClauses().size() == 0)
@@ -39,8 +37,8 @@ bool Solver::splitting(FormulaImpl &f)
 
   // condition 3
   if (uni != 0) {
-    temp = std::make_pair(uni, true);
-    assgn.insert(temp);
+    assgn.emplace(uni, true);
+
     return splitting(unitProp(c, uni));
   }
 
@@ -49,25 +47,23 @@ bool Solver::splitting(FormulaImpl &f)
     std::vector<int> p = getPure(c);
 
     if (p.size() != 0) {
-      for (auto &elem : p) {
-        temp = std::make_pair(elem, true);
-        assgn.insert(temp);
-      }
+      for (auto &elem : p)
+        assgn.emplace(elem, true);
+
       return splitting(pureLit(c, p));
     }
 
     // condition 5
     else {
       int firstLit = c.getClause(0).getLit(0);
-      temp = std::make_pair(firstLit, true);
-      assgn.insert(temp);
+      assgn.emplace(firstLit, true);
 
       if (splitting(unitProp(c, firstLit)) == true)
         return true;
       else {
         assgn.erase(firstLit);
-        temp = std::make_pair(firstLit, false);
-        assgn.insert(temp);
+        assgn.emplace(firstLit, false);
+
         return splitting(unitProp(f, -firstLit));
       }
     }
@@ -83,9 +79,7 @@ FormulaImpl &Solver::unitProp(FormulaImpl &f, int uni)
   std::vector<int> lits;
 
   while (uni != 0) {
-    std::pair<int, bool> temp;
-    temp = std::make_pair(uni, true);
-    assgn.insert(temp);
+    assgn.emplace(uni, true);
 
     std::vector<ClauseImpl>::iterator it;
 
@@ -137,9 +131,7 @@ FormulaImpl &Solver::pureLit(FormulaImpl &f, std::vector<int> p)
   for (auto &elem : p) {
     for (it = f.clauses.begin(); it != f.clauses.end();) {
       if (it->hasLit(elem)) {
-        std::pair<int, bool> temp;
-        temp = std::make_pair(elem, true);
-        assgn.insert(temp);
+        assgn.emplace(elem, true);
         it = f.clauses.erase(it);
       } else {
         ++it;
@@ -161,16 +153,16 @@ std::vector<int> Solver::getPure(FormulaImpl &f)
     for (jt = it->lits.begin(); jt != it->lits.end(); ++jt) {
       if (litTable.find(std::abs(*jt)) == litTable.end()) {
         if (*jt < 0)
-          litTable.insert(std::pair<int, int>(std::abs(*jt), -1));
+          litTable.emplace(std::abs(*jt), -1);
         else
-          litTable.insert(std::pair<int, int>(std::abs(*jt), 1));
+          litTable.emplace(std::abs(*jt), 1);
       } else {
         if (litTable.find(std::abs(*jt))->second == -1 && *jt > 0) {
           litTable.erase(*jt);
-          litTable.insert(std::pair<int, int>(std::abs(*jt), 0));
+          litTable.emplace(std::abs(*jt), 0);
         } else if (litTable.find(std::abs(*jt))->second == 1 && *jt < 0) {
           litTable.erase(std::abs(*jt));
-          litTable.insert(std::pair<int, int>(std::abs(*jt), 0));
+          litTable.emplace(std::abs(*jt), 0);
         }
       }
     }
