@@ -17,13 +17,13 @@ class FormulaImpl : public Formula {
 public:
   // Add a new Clause to the Formula
   // Return a reference to the new clause
-  Clause &addClause();
+  Clause &addClause() override;
 
   // Get the number of clauses
-  int numClauses() const;
+  int numClauses() const override;
 
   // Get the i^th clause in the formula
-  Clause &getClause(int i);
+  Clause &getClause(int i) override;
 
   bool hasLit(int a) const;
 

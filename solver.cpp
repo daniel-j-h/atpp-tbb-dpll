@@ -49,8 +49,8 @@ bool Solver::splitting(FormulaImpl &f)
     std::vector<int> p = getPure(c);
 
     if (p.size() != 0) {
-      for (int i = 0; i < p.size(); ++i) {
-        temp = std::make_pair(p[i], true);
+      for (auto &elem : p) {
+        temp = std::make_pair(elem, true);
         assgn.insert(temp);
       }
       return splitting(pureLit(c, p));
@@ -121,9 +121,9 @@ FormulaImpl &Solver::unitProp(FormulaImpl &f, int uni)
 
 int Solver::getUnitProp(std::vector<ClauseImpl> &c) const
 {
-  for (int i = 0; i < c.size(); ++i)
-    if (c[i].get_lits().size() == 1)
-      return c[i].getLit(0);
+  for (auto &elem : c)
+    if (elem.get_lits().size() == 1)
+      return elem.getLit(0);
   return 0;
 }
 
@@ -134,11 +134,11 @@ FormulaImpl &Solver::pureLit(FormulaImpl &f, std::vector<int> p)
 {
   std::vector<ClauseImpl>::iterator it;
 
-  for (int i = 0; i < p.size(); ++i) {
+  for (auto &elem : p) {
     for (it = f.clauses.begin(); it != f.clauses.end();) {
-      if (it->hasLit(p[i])) {
+      if (it->hasLit(elem)) {
         std::pair<int, bool> temp;
-        temp = std::make_pair(p[i], true);
+        temp = std::make_pair(elem, true);
         assgn.insert(temp);
         it = f.clauses.erase(it);
       } else {
