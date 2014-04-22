@@ -6,11 +6,7 @@
 #include "clause_impl.h"
 #include <vector>
 
-
 namespace Sat {
-
-// class Clause;
-
 
 class FormulaImpl : public Formula {
 
