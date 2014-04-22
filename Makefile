@@ -1,12 +1,13 @@
 ifdef OPT
-  CCFLAGS = -O2
+  CC = clang++
+  CCFLAGS = -std=c++11 -O2 -g -Weverything -Wno-c++98-compat -Wno-c++98-compat-pedantic
 else
-  CCFLAGS = -g
+  CC=g++
+  CCFLAGS = -std=c++11 -O2 -g -Wall -Wextra -pedantic
 endif
 
-CC=g++
-HEADERS=formula.h clause.h debug.h clause_impl.h formula_impl.h solver.h
-SOURCES=sat.cpp formula.cpp clause.cpp debug.cpp clause_impl.cpp formula_impl.cpp solver.cpp
+HEADERS=formula.h clause.h clause_impl.h formula_impl.h solver.h
+SOURCES=sat.cpp formula.cpp clause.cpp clause_impl.cpp formula_impl.cpp solver.cpp
 OBJECTS=$(SOURCES:.cpp=.o)
 EXECUTABLE=sat
 

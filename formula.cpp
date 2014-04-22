@@ -1,26 +1,23 @@
-#include "debug.h"
+#include <istream>
+#include <algorithm>
 #include "clause.h"
 #include "formula.h"
 
-
-using namespace std;
 using namespace Sat;
 
-
-void Formula::readClauses(istream& is)
+void Formula::readClauses(std::istream &is)
 {
   while (!is.eof()) {
-    Clause& c = addClause();
+    Clause &c = addClause();
     c.readClause(is);
-    int tmp = c.maxVar();
-    if (tmp > maxVar) maxVar = tmp;
+
+    maxVar = std::max(c.maxVar(), maxVar);
   }
 }
 
 
 void Formula::dumpClauses()
 {
-  for (int i = 0; i < numClauses(); ++i) {
+  for (int i = 0; i < numClauses(); ++i)
     getClause(i).dumpClause();
-  }
 }

@@ -1,19 +1,17 @@
 #ifndef clause_h
 #define clause_h
 
-#include <fstream>
+#include <iosfwd>
 
 namespace Sat {
 
 class Clause {
 
 public:
-  // Constructor and Destructor
-  Clause() {}
-  virtual ~Clause() {}
+  virtual ~Clause() = default;
 
   // Read the clause from the input stream
-  void readClause(std::istream& is);
+  void readClause(std::istream &is);
 
   // Dump the clause to cout
   void dumpClause() const;

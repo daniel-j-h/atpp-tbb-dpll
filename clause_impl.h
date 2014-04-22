@@ -2,55 +2,39 @@
 #define clause_impl_h
 
 #include "clause.h"
-#include <fstream>
 #include <vector>
-using namespace std;
 
 namespace Sat {
 
 class ClauseImpl : public Clause {
 
 public:
-  // Constructor and Destructor
-  ClauseImpl() {}
-	ClauseImpl(const ClauseImpl &c):lits(c.lits) {
-	  //++clause_num;
-  }
-  ~ClauseImpl() {
-	  //--clause_num;
-  }
-
-
   // Add a literal to the clause
-  void addLiteral(int lit);
+  void addLiteral(int lit) override;
 
   // Get the largest variable in the clause
-  int maxVar() const;
+  int maxVar() const override;
 
   // Get the number of variables in the clause
-  int numLits() const;
+  int numLits() const override;
 
   // Get the i^th literal in the clause
-  int getLit(int i) const;
+  int getLit(int i) const override;
 
-  //static size_t numOfClauses(){return clause_num;}
+  // static size_t numOfClauses(){return clause_num;}
 
-  vector<int> get_lits() const;
+  std::vector<int> get_lits() const;
 
   void add_lits(int lit);
 
-  vector<int> lits;
+  std::vector<int> lits;
 
-  bool hasLit (int i) const;
-  
-  
+  bool hasLit(int i) const;
+
+
 private:
-	//static size_t clause_num;
   // Data structure for saving one clause
-	
-
 };
-
 }
 
 #endif
