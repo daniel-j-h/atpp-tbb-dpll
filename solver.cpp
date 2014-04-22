@@ -1,4 +1,8 @@
 #include <cstdlib>
+#include <algorithm>
+#include <functional>
+#include <iterator>
+#include "clause.h"
 #include "solver.h"
 
 using namespace Sat;
@@ -23,17 +27,20 @@ bool Solver::solve(FormulaImpl &f)
 bool Solver::splitting(FormulaImpl &f)
 {
   FormulaImpl c(f);
+  auto clauses = c.getClauses();
 
   // condition 1
-  if (c.getClauses().size() == 0)
+  if (clauses.empty())
     return true;
 
   // condition 2
-  for (int i = 0; i < c.getClauses().size(); ++i)
-    if (c.getClause(i).numLits() == 0)
-      return false;
+  auto empty = [](const Clause &clause) { return clause.numLits() == 0; };
+  auto contains_empty = std::find_if(std::begin(clauses), std::end(clauses), empty) != std::end(clauses);
 
-  int uni = getUnitProp(c.getClauses());
+  if (contains_empty)
+    return false;
+
+  int uni = getUnitProp(clauses);
 
   // condition 3
   if (uni != 0) {
@@ -46,9 +53,9 @@ bool Solver::splitting(FormulaImpl &f)
   else {
     std::vector<int> p = getPure(c);
 
-    if (p.size() != 0) {
-      for (auto &elem : p)
-        assgn.emplace(elem, true);
+    if (!p.empty()) {
+      for (const auto &lit : p)
+        assgn.emplace(lit, true);
 
       return splitting(pureLit(c, p));
     }
@@ -58,7 +65,7 @@ bool Solver::splitting(FormulaImpl &f)
       int firstLit = c.getClause(0).getLit(0);
       assgn.emplace(firstLit, true);
 
-      if (splitting(unitProp(c, firstLit)) == true)
+      if (splitting(unitProp(c, firstLit)))
         return true;
       else {
         assgn.erase(firstLit);
@@ -81,43 +88,40 @@ FormulaImpl &Solver::unitProp(FormulaImpl &f, int uni)
   while (uni != 0) {
     assgn.emplace(uni, true);
 
-    std::vector<ClauseImpl>::iterator it;
-
-    for (it = f.clauses.begin(); it != f.clauses.end();) {
+    for (auto it = std::begin(f.clauses), end = std::end(f.clauses); it != end;) {
       bool flag = false;
-      std::vector<int>::iterator jt;
 
-      for (jt = it->lits.begin(); jt != it->lits.end();) {
-
-        if ((*jt) == -uni) {
-          jt = it->lits.erase(jt);
+      for (auto jt = std::begin(it->lits), jt_end = std::end(it->lits); jt != jt_end; ++jt) {
+        if (*jt == -uni) {
+          it->lits.erase(jt);
           break;
-        } else if ((*jt) == uni) {
+        } else if (*jt == uni) {
           flag = true;
           break;
-        } else {
-          ++jt;
         }
       }
-      if (flag == false)
+
+      if (!flag)
         ++it;
-      else {
-        // it->clearLits();
+      else
         it = f.clauses.erase(it);
-      }
     }
 
     uni = getUnitProp(f.getClauses());
   }
+
   // f.setClauses (f.clauses);
   return f;
 }
 
 int Solver::getUnitProp(std::vector<ClauseImpl> &c) const
 {
-  for (auto &elem : c)
-    if (elem.get_lits().size() == 1)
-      return elem.getLit(0);
+  auto one_lit = [](const ClauseImpl &clause) { return clause.get_lits().size() == 1; };
+  auto lit = std::find_if(std::begin(c), std::end(c), one_lit);
+
+  if (lit != std::end(c))
+    return lit->getLit(0);
+
   return 0;
 }
 
@@ -126,18 +130,17 @@ if it creates a clause that contains both a variable and its negation, filter th
 */
 FormulaImpl &Solver::pureLit(FormulaImpl &f, std::vector<int> p)
 {
-  std::vector<ClauseImpl>::iterator it;
-
-  for (auto &elem : p) {
-    for (it = f.clauses.begin(); it != f.clauses.end();) {
-      if (it->hasLit(elem)) {
-        assgn.emplace(elem, true);
+  for (const auto &lit : p) {
+    for (auto it = std::begin(f.clauses), end = std::end(f.clauses); it != end;) {
+      if (it->hasLit(lit)) {
+        assgn.emplace(lit, true);
         it = f.clauses.erase(it);
       } else {
         ++it;
       }
     }
   }
+
   return f;
 }
 
@@ -146,36 +149,32 @@ std::vector<int> Solver::getPure(FormulaImpl &f)
   std::map<int, int> litTable;
   std::vector<int> p;
 
-  std::vector<ClauseImpl>::iterator it;
+  for (auto it = std::begin(f.clauses), end = std::end(f.clauses); it != end; ++it) {
+    for (auto jt = std::begin(it->lits), jt_end = std::end(it->lits); jt != jt_end; ++jt) {
+      auto jt_abs = std::abs(*jt);
 
-  for (it = f.clauses.begin(); it != f.clauses.end(); ++it) {
-    std::vector<int>::iterator jt;
-    for (jt = it->lits.begin(); jt != it->lits.end(); ++jt) {
-      if (litTable.find(std::abs(*jt)) == litTable.end()) {
-        if (*jt < 0)
-          litTable.emplace(std::abs(*jt), -1);
-        else
-          litTable.emplace(std::abs(*jt), 1);
+      if (litTable.find(jt_abs) == std::end(litTable)) {
+        litTable.emplace(jt_abs, *jt < 0 ? -1 : 1);
       } else {
-        if (litTable.find(std::abs(*jt))->second == -1 && *jt > 0) {
+        if (litTable.find(jt_abs)->second == -1 && *jt > 0) {
           litTable.erase(*jt);
-          litTable.emplace(std::abs(*jt), 0);
-        } else if (litTable.find(std::abs(*jt))->second == 1 && *jt < 0) {
-          litTable.erase(std::abs(*jt));
-          litTable.emplace(std::abs(*jt), 0);
+          litTable.emplace(jt_abs, 0);
+        } else if (litTable.find(jt_abs)->second == 1 && *jt < 0) {
+          litTable.erase(jt_abs);
+          litTable.emplace(jt_abs, 0);
         }
       }
     }
   }
 
-  std::map<int, int>::iterator kt;
   int lit;
 
-  for (kt = litTable.begin(); kt != litTable.end(); ++kt) {
-    if (kt->second != 0) {
-      lit = (kt->first) * (kt->second);
-      p.push_back(lit);
+  for (auto it = std::begin(litTable), end = std::end(litTable); it != end; ++it) {
+    if (it->second != 0) {
+      lit = it->first * it->second;
+      p.emplace_back(lit);
     }
   }
+
   return p;
 }

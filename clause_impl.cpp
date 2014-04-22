@@ -42,7 +42,7 @@ std::vector<int> ClauseImpl::get_lits() const
 
 void ClauseImpl::add_lits(int lit)
 {
-  lits.push_back(lit);
+  lits.emplace_back(lit);
 }
 
 bool ClauseImpl::hasLit(int a) const

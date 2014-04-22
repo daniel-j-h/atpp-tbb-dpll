@@ -9,8 +9,7 @@ using namespace Sat;
 // Return a reference to the new clause
 Clause &FormulaImpl::addClause()
 {
-  ClauseImpl c;
-  clauses.push_back(c);
+  clauses.emplace_back();
   return clauses.back();
 }
 
