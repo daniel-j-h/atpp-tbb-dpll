@@ -2,7 +2,7 @@
 #define solver_h
 
 #include <vector>
-#include <map>
+#include <unordered_map>
 #include "formula_impl.h"
 
 namespace Sat {
@@ -10,7 +10,7 @@ namespace Sat {
 class Solver {
 
 public:
-  std::map<int, bool> assgn;
+  std::unordered_map<int, bool> assgn;
   bool solve(FormulaImpl &f);
   bool splitting(FormulaImpl &c);
   FormulaImpl &unitProp(FormulaImpl &f, int uni);

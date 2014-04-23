@@ -146,7 +146,7 @@ FormulaImpl &Solver::pureLit(FormulaImpl &f, std::vector<int> p)
 
 std::vector<int> Solver::getPure(FormulaImpl &f)
 {
-  std::map<int, int> litTable;
+  std::unordered_map<int, int> litTable;
   std::vector<int> p;
 
   for (auto it = std::begin(f.clauses), end = std::end(f.clauses); it != end; ++it) {
